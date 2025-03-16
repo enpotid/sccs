@@ -1,6 +1,7 @@
+use crate::sctype::*;
 use std::{cmp::Ordering, fmt, ops};
 
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Sign {
     Plus,
     Minus,
@@ -28,7 +29,7 @@ impl ScInt {
             }
         }
 
-        s = crate::sctype::util::to_byte(&s);
+        s = util::to_byte(&s);
         let l = s.chars().collect::<Vec<char>>().len();
         let n = if l % 32 != 0 { l + 32 - (l % 32) } else { l };
         s = format!("{}{}", "0".repeat(n - l), s);
@@ -65,11 +66,35 @@ impl ops::Add for ScInt {
     type Output = ScInt;
 
     fn add(self, other: ScInt) -> ScInt {
+        &self + &other
+    }
+}
+
+impl<'a> ops::Add<ScInt> for &'a ScInt {
+    type Output = ScInt;
+
+    fn add(self, other: ScInt) -> Self::Output {
+        self + &other
+    }
+}
+
+impl<'a> ops::Add<&'a ScInt> for ScInt {
+    type Output = ScInt;
+
+    fn add(self, other: &ScInt) -> Self::Output {
+        &self + other
+    }
+}
+
+impl<'a, 'b> ops::Add<&'b ScInt> for &'a ScInt {
+    type Output = ScInt;
+
+    fn add(self, other: &ScInt) -> Self::Output {
         if self.sign == other.sign {
             let a: Vec<u64> = self.value.iter().rev().map(|&s| s as u64).collect();
             let b: Vec<u64> = other.value.iter().rev().map(|&s| s as u64).collect();
 
-            let mut result = Vec::new();
+            let mut result: Vec<u32> = Vec::new();
             let mut up = 0;
             for i in 0..a.len().max(b.len()) {
                 let x = a.get(i).unwrap_or(&0) + b.get(i).unwrap_or(&0) + up;
@@ -95,8 +120,8 @@ impl ops::Add for ScInt {
                     break;
                 }
             }
-
             result.reverse();
+
             ScInt {
                 sign: self.sign,
                 value: result,
@@ -130,6 +155,30 @@ impl ops::Sub for ScInt {
     type Output = ScInt;
 
     fn sub(self, other: ScInt) -> ScInt {
+        &self - &other
+    }
+}
+
+impl<'a> ops::Sub<ScInt> for &'a ScInt {
+    type Output = ScInt;
+
+    fn sub(self, other: ScInt) -> Self::Output {
+        self - &other
+    }
+}
+
+impl<'a> ops::Sub<&'a ScInt> for ScInt {
+    type Output = ScInt;
+
+    fn sub(self, other: &ScInt) -> Self::Output {
+        &self - other
+    }
+}
+
+impl<'a, 'b> ops::Sub<&'b ScInt> for &'a ScInt {
+    type Output = ScInt;
+
+    fn sub(self, other: &ScInt) -> ScInt {
         if self.sign == other.sign {
             if self.sign == Sign::Plus {
                 if self > other {
@@ -159,8 +208,8 @@ impl ops::Sub for ScInt {
                             break;
                         }
                     }
-
                     result.reverse();
+
                     ScInt {
                         sign: Sign::Plus,
                         value: result,
@@ -176,21 +225,21 @@ impl ops::Sub for ScInt {
                     }
                 }
             } else {
-                let mut ns = self;
+                let mut ns = self.clone();
                 ns.sign = Sign::Plus;
-                let mut no = other;
+                let mut no = other.clone();
                 no.sign = Sign::Plus;
                 no - ns
             }
         } else {
             if self.sign == Sign::Plus {
-                let mut no = other;
+                let mut no = other.clone();
                 no.sign = Sign::Plus;
-                self + no
+                self + &no
             } else {
-                let mut no = other;
+                let mut no = other.clone();
                 no.sign = Sign::Minus;
-                self + no
+                self + &no
             }
         }
     }
@@ -219,6 +268,7 @@ impl Ord for ScInt {
                         break;
                     }
                 }
+                ns.reverse();
 
                 let mut no: Vec<u32> = other.value.clone().iter().rev().map(|&s| s).collect();
                 loop {
@@ -231,6 +281,7 @@ impl Ord for ScInt {
                         break;
                     }
                 }
+                no.reverse();
 
                 if ns.len() > no.len() {
                     Ordering::Greater
@@ -271,6 +322,21 @@ impl fmt::Display for ScInt {
         } else {
             write!(f, "{}", crate::sctype::util::byte_to_num(&result))
         }
+    }
+}
+
+impl fmt::Debug for ScInt {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Sign: {}, Value: {:?}",
+            if self.sign == Sign::Plus {
+                "Plus"
+            } else {
+                "Minus"
+            },
+            self.value
+        )
     }
 }
 
