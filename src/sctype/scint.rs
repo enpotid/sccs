@@ -1,13 +1,13 @@
 use crate::sctype::*;
 use std::{cmp::Ordering, fmt, ops};
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Sign {
     Plus,
     Minus,
 }
 
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Hash)]
 pub struct ScInt {
     pub sign: Sign,
     pub value: Vec<u32>,
@@ -40,6 +40,19 @@ impl ScInt {
             i += 32
         }
 
+        list.reverse();
+        loop {
+            if let Some(x) = list.pop() {
+                if x != 0 {
+                    list.push(x);
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        list.reverse();
+
         Some(Self { sign, value: list })
     }
 
@@ -54,6 +67,19 @@ impl ScInt {
             list.push(u32::from_str_radix(&s[i..i + 32].to_string(), 2).unwrap());
             i += 32
         }
+
+        list.reverse();
+        loop {
+            if let Some(x) = list.pop() {
+                if x != 0 {
+                    list.push(x);
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        list.reverse();
 
         Self {
             sign: if x >= 0 { Sign::Plus } else { Sign::Minus },

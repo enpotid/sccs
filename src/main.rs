@@ -1,9 +1,38 @@
 use sctype::scint::ScInt;
+use std::collections::HashMap;
+use std::io;
+use std::sync::{Arc, Mutex};
 
 mod sctype;
 
 fn main() {
-    let a = ScInt::from("543435435435555555555726892567980652498545705624798056247852678952678956489706524098754638970543092843876924537896453987564546657675465746574").unwrap();
-    let b = ScInt::from("827809254087945089754897089076567565732346897234987231479843129873142986615680942530987246307982670892647089643780964708962478926487906240798").unwrap();
-    println!("{}", a - b);
+    let mut buffer = String::new();
+    io::stdin().read_line(&mut buffer).unwrap();
+    let n = ScInt::from(buffer.trim()).unwrap();
+
+    let dp: Arc<Mutex<HashMap<ScInt, ScInt>>> = Arc::new(Mutex::new(HashMap::new()));
+
+    {
+        let mut dp_lock = dp.lock().unwrap();
+        dp_lock.insert(ScInt::from_i128(0), ScInt::from_i128(0));
+        dp_lock.insert(ScInt::from_i128(1), ScInt::from_i128(1));
+        dp_lock.insert(ScInt::from_i128(2), ScInt::from_i128(1));
+    }
+
+    println!("{}", fib(&dp, &n));
+}
+
+fn fib(dp: &Arc<Mutex<HashMap<ScInt, ScInt>>>, n: &ScInt) -> ScInt {
+    {
+        let dp_lock = dp.lock().unwrap();
+        if let Some(x) = dp_lock.get(n) {
+            return x.clone();
+        }
+    }
+
+    let x = fib(dp, &(n - ScInt::from_i128(1))) + fib(dp, &(n - ScInt::from_i128(2)));
+    let mut dp_lock = dp.lock().unwrap();
+    dp_lock.insert(n.clone(), x.clone());
+
+    x
 }
