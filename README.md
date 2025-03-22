@@ -1,3 +1,3 @@
-![logo](https://github.com/user-attachments/assets/b630b0c2-b491-43d4-9644-e074bb223600)
+![logo](https://github.com/user-attachments/assets/15ab3c8b-3182-4470-b5cc-6fc1f01cada9)
 # SCCS
 This is a Rust math library and a terminal scientific calculator
