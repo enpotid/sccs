@@ -271,6 +271,110 @@ impl<'a, 'b> ops::Sub<&'b ScInt> for &'a ScInt {
     }
 }
 
+impl ops::Mul for ScInt {
+    type Output = ScInt;
+
+    fn mul(self, other: ScInt) -> ScInt {
+        &self * &other
+    }
+}
+
+impl<'a> ops::Mul<ScInt> for &'a ScInt {
+    type Output = ScInt;
+
+    fn mul(self, other: ScInt) -> Self::Output {
+        self * &other
+    }
+}
+
+impl<'a> ops::Mul<&'a ScInt> for ScInt {
+    type Output = ScInt;
+
+    fn mul(self, other: &ScInt) -> Self::Output {
+        &self * other
+    }
+}
+
+impl<'a, 'b> ops::Mul<&'b ScInt> for &'a ScInt {
+    type Output = ScInt;
+
+    fn mul(self, other: &ScInt) -> ScInt {
+        let mut result = ScInt::from_i128(0);
+
+        for i in 0..self.value.len() {
+            for j in 0..other.value.len() {
+                let x = ScInt::from_i128(
+                    self.value[self.value.len() - i - 1] as i128
+                        * other.value[other.value.len() - j - 1] as i128,
+                );
+                result = result + (x << (i + j));
+            }
+        }
+
+        result.value.reverse();
+        loop {
+            if let Some(x) = result.value.pop() {
+                if x != 0 {
+                    result.value.push(x);
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        result.value.reverse();
+
+        let sign = if self.sign == other.sign {
+            Sign::Plus
+        } else {
+            Sign::Minus
+        };
+
+        ScInt {
+            sign,
+            value: result.value,
+        }
+    }
+}
+
+impl ops::Shl<usize> for ScInt {
+    type Output = ScInt;
+
+    fn shl(mut self, other: usize) -> ScInt {
+        self.value.resize(self.value.len() + other, 0);
+        self
+    }
+}
+
+impl ops::Shl<u32> for ScInt {
+    type Output = ScInt;
+
+    fn shl(self, other: u32) -> ScInt {
+        self << other as usize
+    }
+}
+
+impl ops::Shr<usize> for ScInt {
+    type Output = ScInt;
+
+    fn shr(mut self, other: usize) -> ScInt {
+        if other >= self.value.len() {
+            self.value.clear();
+        } else {
+            self.value.truncate(self.value.len() - other);
+        }
+        self
+    }
+}
+
+impl ops::Shr<u32> for ScInt {
+    type Output = ScInt;
+
+    fn shr(self, other: u32) -> ScInt {
+        self >> other as usize
+    }
+}
+
 impl Ord for ScInt {
     fn cmp(&self, other: &Self) -> Ordering {
         if self == other {
