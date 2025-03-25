@@ -88,6 +88,18 @@ impl ScInt {
     }
 }
 
+impl Default for ScInt {
+    fn default() -> Self {
+        Self::from_i128(0)
+    }
+}
+
+impl ops::AddAssign for ScInt {
+    fn add_assign(&mut self, other: Self) {
+        *self = self.clone() + other
+    }
+}
+
 impl ops::Add for ScInt {
     type Output = ScInt;
 
