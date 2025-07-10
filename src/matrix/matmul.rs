@@ -17,10 +17,10 @@ pub fn mul2d<T: Default + Clone + Mul<Output = T> + AddAssign>(
 
     let mut result = vec![vec![T::default().clone(); b_cols]; a_rows];
 
-    for i in 0..a_rows {
-        for j in 0..b_cols {
-            for k in 0..a_cols {
-                result[i][j] += a.value[i][k].clone() * b.value[k][j].clone();
+    for i in 0..b_cols {
+        for j in 0..b_rows {
+            for k in 0..a_rows {
+                result[k][i] += b.value[j][i].clone() * a.value[k][j].clone();
             }
         }
     }
